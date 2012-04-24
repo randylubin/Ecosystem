@@ -19,7 +19,8 @@ class Organism {
 		this.r = orgStats[1]/2;
 		this.visionR = orgStats[2]/2;
 		this.maxVel = orgStats[3];
-		this.startDiet, this.calories = orgStats[4];
+		this.startDiet = orgStats[4];
+		this.calories = orgStats[4];
 
 		this.hunting = false;
 		
@@ -50,7 +51,7 @@ class Organism {
 	void run(ArrayList organisms){
 		if (foodRank != 0){
 			interact(organisms);
-			if (diet >= 2*orgStats[4]) reproduce();
+			if (calories >= 2*startDiet) reproduce();
 		}
 		update();
 		render();
@@ -82,7 +83,7 @@ class Organism {
 			if ((this.foodRank == other.foodRank + 1) && (loc.dist(other.loc) < visionR)){
 				if(loc.dist(other.loc) <= r){
 					ecosystem.killOrganism(this.foodRank - 1, i, other.calories*.25, other.loc);
-					diet += other.calories*.75;
+					calories += other.calories*.75;
 					hunting = false;
 					break;
 				}
@@ -114,7 +115,7 @@ class Organism {
 
 	void reproduce(){
 		ecosystem.spawn(ecoStats[int(foodRank)], loc);
-		diet -= this.startDiet;
+		calories -= this.startDiet;
 	}
 
 	void update() {
