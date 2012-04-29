@@ -10,20 +10,25 @@ class Organism {
 	float calories;
 	boolean hunting;
 	boolean hunted;
+	float burnRatePerUpdate;
+	int ecoI;
+	float nearest;
+	PVector nearestPV;
 
 	color c1;
 	color c2;
 
-	Organism(float[] orgStats){
+	Organism(float[] orgStats, PVector startLoc){
 		this.foodRank = orgStats[0];
 		this.r = orgStats[1]/2;
 		this.visionR = orgStats[2]/2;
 		this.maxVel = orgStats[3];
 		this.startDiet = orgStats[4];
 		this.calories = orgStats[4];
-
+		this.burnRatePerUpdate = orgStats[5]*(1.0/fPS);
 		this.hunting = false;
-		
+		this.nearest = 1000;
+		this.nearestPV = new PVector(0,0);
 		colorize(int(foodRank));
 
 		loc = new PVector(random(r, width - r), random(r, height - r));
@@ -31,6 +36,7 @@ class Organism {
 		vel = new PVector(random(-maxVel, maxVel),random(-maxVel, maxVel));
 		
 		acc = new PVector(0,0);
+		//render();
 	}
 
 	void colorize(int foodRank){
@@ -51,7 +57,16 @@ class Organism {
 	void run(ArrayList organisms){
 		if (foodRank != 0){
 			interact(organisms);
-			if (calories >= 2*startDiet) reproduce();
+			if (calories >= 2*startDiet) reproduce(organisms);
+			burnCal();
+		}
+
+		//plant reproduction
+		if ((foodRank == 0) && (organisms.size() < 100)){
+			if (get(int(loc.x),int(loc.y)) == color(52,52,52)){
+				float f = random(0,1);
+				if (f < 1.0/120.0) reproduce(organisms);
+			}
 		}
 		update();
 		render();
@@ -78,6 +93,7 @@ class Organism {
 
 	void findPrey(ArrayList organisms){
 		hunting = false;
+		nearest = 1000;
 		for (int i = 0; i < organisms.size(); i++){
 			Organism other = (Organism) organisms.get(i);
 			if ((this.foodRank == other.foodRank + 1) && (loc.dist(other.loc) < visionR)){
@@ -85,12 +101,19 @@ class Organism {
 					ecosystem.killOrganism(this.foodRank - 1, i, other.calories*.25, other.loc);
 					calories += other.calories*.75;
 					hunting = false;
+					nearest = 1000;
 					break;
-				}
+				} else {
 
-				acc.add(steer(other.loc));
-				hunting = true;
-				break;
+					float tempDist = loc.dist(other.loc);
+					if (tempDist < nearest){
+						nearest = tempDist;
+						nearestPV = other.loc;
+					}
+					hunting=true;
+	
+					acc.set(steer(nearestPV));
+				}
 			}
 		}		
 	}
@@ -113,9 +136,15 @@ class Organism {
 	    return steer;
 	}
 
-	void reproduce(){
+	void reproduce(ArrayList organisms){
+	
 		ecosystem.spawn(ecoStats[int(foodRank)], loc);
-		calories -= this.startDiet;
+		calories -= this.startDiet - 1;
+
+	}
+
+	void burnCal(){
+		this.calories -= this.burnRatePerUpdate;
 	}
 
 	void update() {
@@ -123,14 +152,12 @@ class Organism {
 
 			// Update velocity
 			vel.add(new PVector(random(-1,1),random(-1,1)));
-			vel.limit(maxVel);
-
 
 		} else{
 			vel.add(acc);
-			vel.limit(maxVel); 
 		}
 
+		vel.limit(maxVel);
 		checkWallCollision();
 
 		// Update org position

@@ -9,6 +9,8 @@ class Ecosystem{
 		for (int i = 0; i < organisms.size(); i++){
 			Organism o = (Organism) organisms.get(i);
 			o.run(organisms);
+			if (o.calories < o.startDiet/2) this.killOrganism(o.foodRank, i, o.calories, o.loc);
+
 		}
 	}
 
@@ -16,20 +18,22 @@ class Ecosystem{
 		organisms.add(o);
 	}
 
-	void spawn(float[] oS, PVector l){	
+	void spawn(float[] oS, PVector tempL){	
+		PVector l = tempL;
 		Organism o;
-		o = new Organism(oS);
+		o = new Organism(oS, l);
 		l.add(new PVector(random(-3,3),random(-3,3)));
 		o.move(l);
-		addOrganism(o);	
+		ecosystem.addOrganism(o);	
 	}
 
 	void decompose(PVector l, int pop){
+
 		for (int i = 0; i < pop; i++){
 			Organism o;
-			o = new Organism(ecoStats[0]);
+	
 			l.add(new PVector(random(-3,3),random(-3,3)));
-			o.move(l);
+			o = new Organism(ecoStats[0], l);
 			addOrganism(o);	
 		}
 	}
