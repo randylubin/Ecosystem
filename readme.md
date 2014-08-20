@@ -1,6 +1,8 @@
 Ecosystem
 =========
 
+Demo: http://randylubin.github.io/ecosystem-p5js/
+
 About
 -----
 
